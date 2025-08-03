@@ -58,54 +58,55 @@ def create_main_function(configure_func: Callable) -> Callable:
 
             # Validate node
             if not node.is_valid():
-                print("❌ Invalid Kage node", file=sys.stderr)
+                print("Invalid Kage node", file=sys.stderr)
                 return 1
 
-            print(f"✅ Valid Kage node: {node.node_config['name']} v{node.node_config['version']}")
+            print(f"Valid Kage node: {node.node_config['name']} v{node.node_config['version']}")
 
             # Handle validation-only request
             if args.validate_only:
-                print("✅ Node validation passed")
+                print("Node validation passed")
                 return 0
 
             # Load input data
             input_data = _load_input_data(Path(args.input))
-            print(f"📥 Loaded input data from {args.input}")
+            print(f"Loaded input data from {args.input}")
 
             # Initialize Kage
-            kage = node.initialize_kage(input_data)
-            print("🚀 Executing Kage node...")
+            kage = node.initialize_kage()
+            print("Executing Kage node...")
 
             # Configure with user's function
             configured_kage = configure_func(kage)
 
             # Execute
-            result = configured_kage.execute()
+            result = configured_kage.execute(input_data)
 
             # Save output
             _save_output_data(result, Path(args.output_json))
-            print(f"📤 Output saved to {args.output_json}")
+            print(f"Output saved to {args.output_json}")
 
             return 0
 
         except NodeValidationError as e:
-            print(f"❌ Node validation error: {e}", file=sys.stderr)
+            print(f"Node validation error: {e}", file=sys.stderr)
+            _save_output_data({"error": e}, Path(args.output_json))
             return 1
 
         except ValidationError as e:
-            print(f"❌ Input validation error: {e}", file=sys.stderr)
+            _save_output_data({"error": e}, Path(args.output_json))
             return 1
 
         except ExecutionError as e:
-            print(f"❌ Execution error: {e}", file=sys.stderr)
+            _save_output_data({"error": e}, Path(args.output_json))
             return 1
 
         except FileNotFoundError as e:
-            print(f"❌ File error: {e}", file=sys.stderr)
+            _save_output_data({"error": e}, Path(args.output_json))
             return 1
 
         except Exception as e:
-            print(f"❌ Unexpected error: {e}", file=sys.stderr)
+            _save_output_data({"error": e}, Path(args.output_json))
             return 1
 
     return main

@@ -1,0 +1,35 @@
+{
+  "name": "Basic",
+  "version": "1.0.0",
+  "type": "node",
+  "model": {
+    "execution_model": {
+      "language": "python",
+      "input_schema": {
+        "type": "object",
+        "required": ["user"],
+        "properties": {
+          "user": {
+            "name": "string",
+            "age": "integer"
+          }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "message": "string"
+        }
+      }
+    },
+    "source": "/home/kid-a/projects/python-kage-sdk/templates/basic/",
+    "working_directory": "/home/kid-a/projects/",
+    "entry_file": "main.py"
+  },
+  "metadata": {
+    "description": "A basic Kage node project",
+    "author": "Kid A",
+    "author_email": "thisismeamir@outlook.com",
+    "author_url": "https://github.com/thisismeamir"
+  }
+}

@@ -82,7 +82,7 @@ class KageNode:
 
     def _load_node_config(self) -> Dict[str, Any]:
         """Load and validate .node.json configuration"""
-        node_file = self.project_dir / ".node.json"
+        node_file = next(self.project_dir.glob("*.node.json"), None)
 
         if not node_file.exists():
             raise NodeValidationError(f".node.json not found in {self.project_dir}")
@@ -130,11 +130,10 @@ class KageNode:
         """Get output schema from node config"""
         return self.node_config["model"]["execution_model"]["output_schema"]
 
-    def initialize_kage(self, input_data: Dict[str, Any]) -> Kage:
+    def initialize_kage(self) -> Kage:
         """Initialize Kage instance with input data and schemas"""
         try:
             self.kage = Kage(
-                input_data,
                 self.get_input_schema(),
                 self.get_output_schema()
             )
@@ -146,9 +145,9 @@ class KageNode:
     def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the Kage node"""
         if not self.kage:
-            self.initialize_kage(input_data)
+            self.initialize_kage()
 
-        return self.kage.execute()
+        return self.kage.execute(input_data)
 
     def get_info(self) -> Dict[str, Any]:
         """Get node information"""
@@ -225,7 +224,7 @@ def main():
         print(f"📥 Loaded input data from {args.input}")
 
         # Initialize and execute Kage
-        node.initialize_kage(input_data)
+        node.initialize_kage()
         print("🚀 Executing Kage node...")
 
         # Import and configure the actual plugin

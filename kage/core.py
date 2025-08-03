@@ -5,51 +5,6 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 
-
-class KageError(Exception):
-    """Base exception for Kage framework errors"""
-    pass
-
-
-class ValidationError(KageError):
-    """Raised when input validation fails"""
-    pass
-
-
-class ExecutionError(KageError):
-    """Raised when function execution fails"""
-    pass
-
-
-class SchemaError(KageError):
-    """Raised when schema is invalid"""
-    pass
-
-
-class DataType(Enum):
-    """Supported data types for schema validation"""
-    STRING = "string"
-    INTEGER = "integer"
-    FLOAT = "float"
-    BOOLEAN = "boolean"
-    ARRAY = "array"
-    OBJECT = "object"
-    NULL = "null"
-
-
-@dataclass
-class FunctionBinding:
-    """Represents a function bound to specific input parameters"""
-    func: Callable
-    input_mapping: Dict[str, str]  # Maps function param names to input keys
-    output_key: Optional[str] = None  # Key in output schema to store result
-    dependencies: List[str] = None  # Other function output keys this depends on
-
-    def __post_init__(self):
-        if self.dependencies is None:
-            self.dependencies = []
-
-
 class Kage:
     """
     Kage Plugin Framework - A JSON schema-based function orchestration system
@@ -60,29 +15,22 @@ class Kage:
     - Dependency resolution for function execution order
     - Structured output generation
     """
-
     def __init__(self,
-                 input_data: Union[Dict, str, Path],
                  input_schema: Union[Dict, str, Path],
                  output_schema: Optional[Union[Dict, str, Path]] = None):
         """
         Initialize Kage with input data, schema, and optional output schema
 
         Args:
-            input_data: JSON data or path to JSON file
             input_schema: JSON schema or path to schema file
             output_schema: Optional output schema or path to schema file
         """
-        self.input_data = self._load_json(input_data)
         self.input_schema = self._load_json(input_schema)
         self.output_schema = self._load_json(output_schema) if output_schema else {}
 
         self.functions: Dict[str, FunctionBinding] = {}
         self.execution_results: Dict[str, Any] = {}
         self.output_data: Dict[str, Any] = {}
-
-        # Validate input against schema
-        self._validate_input()
 
         # Initialize output structure if schema provided
         if self.output_schema:
@@ -124,9 +72,9 @@ class Kage:
         expected_python_type = type_map[expected_type]
         return isinstance(value, expected_python_type)
 
-    def _validate_input(self):
+    def _validate_input(self, input_data):
         """Validate input data against input schema"""
-        self._validate_object(self.input_data, self.input_schema, "root")
+        self._validate_object(input_data, self.input_schema, "root")
 
     def _validate_object(self, data: Dict, schema: Dict, path: str = ""):
         """Recursively validate object against schema"""
@@ -246,10 +194,7 @@ class Kage:
                     f"Parameter '{param_name}' not found in function '{func_name}'"
                 )
 
-        # Validate that mapped input keys exist
-        for input_key in input_mapping.values():
-            if not self._key_exists_in_data(input_key, self.input_data):
-                raise KageError(f"Input key '{input_key}' not found in input data")
+
 
         self.functions[func_name] = FunctionBinding(
             func=func,
@@ -310,16 +255,24 @@ class Kage:
 
         return resolved
 
-    def execute(self) -> Dict[str, Any]:
+    def execute(self, input_data) -> Dict[str, Any]:
         """
         Execute all bound functions in dependency order
 
         Returns:
             Dictionary containing the final output data
         """
+        self.input_data = input_data
+
         if not self.functions:
             raise ExecutionError("No functions bound for execution")
 
+        self._validate_input(self.input_data)
+        # Validate that mapped input keys exist
+        for func_name, func in self.functions.items():
+            for input_key in func.input_mapping.values():
+                if not self._key_exists_in_data(input_key, self.input_data):
+                    raise KageError(f"Input key '{input_key}' not found in input data")
         # Resolve execution order
         execution_order = self._resolve_execution_order()
 
@@ -367,7 +320,10 @@ class Kage:
 
     def get_input_value(self, key: str) -> Any:
         """Get value from input data"""
-        return self._get_nested_value(key, self.input_data)
+        try:
+            return self._get_nested_value(key, self.input_data)
+        except ExecutionError as e:
+            return e
 
     def get_execution_result(self, func_name: str) -> Any:
         """Get result from a specific function execution"""
@@ -403,7 +359,46 @@ class Kage:
             Configured Kage instance
         """
         return cls(input_file, schema_file, output_schema_file)
+class KageError(Exception):
+    """Base exception for Kage framework errors"""
+    pass
 
 
+class ValidationError(KageError):
+    """Raised when input validation fails"""
+    pass
 
+
+class ExecutionError(KageError):
+    """Raised when function execution fails"""
+    pass
+
+
+class SchemaError(KageError):
+    """Raised when schema is invalid"""
+    pass
+
+
+class DataType(Enum):
+    """Supported data types for schema validation"""
+    STRING = "string"
+    INTEGER = "integer"
+    FLOAT = "float"
+    BOOLEAN = "boolean"
+    ARRAY = "array"
+    OBJECT = "object"
+    NULL = "null"
+
+
+@dataclass
+class FunctionBinding:
+    """Represents a function bound to specific input parameters"""
+    func: Callable
+    input_mapping: Dict[str, str]  # Maps function param names to input keys
+    output_key: Optional[str] = None  # Key in output schema to store result
+    dependencies: List[str] = None  # Other function output keys this depends on
+
+    def __post_init__(self):
+        if self.dependencies is None:
+            self.dependencies = []
 

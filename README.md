@@ -3,7 +3,7 @@
 
 ---
 ###### Short Description About Kage Ecosystem
-Kage (acronyms of **K**ernel of **A**utonomous **G**raph-based **E**xecution, Read ) is a software project dedicated to make automations and pipeline creation easier, accessible and local.
+Kage (acronyms of **K**ernel of **A**utonomous **G**raph-based **E**xecution, Read `/ka.ge/` ) is a software project dedicated to make automations and pipeline creation easier, accessible and local.
 Kage is a lightweight, modular automation system that enables users to create custom workflows and automations on their local machines.
 Unlike traditional system automation tools, Kage focuses on personal productivity workflows that can chain together APIs, AI services, file operations, and system commands seamlessly.
 Here’s a clean, professional-style **dictionary entry** for **Kage** suitable for inclusion in technical or conceptual documentation:

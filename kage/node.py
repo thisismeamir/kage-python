@@ -120,7 +120,7 @@ class KageNode:
                 return False
 
             # Check if language is Python
-            if self.node_config["model"]["execution_model"]["language"] != "python":
+            if self.node_config["model"]["execution_model"]["language"]["name"] != "python":
                 return False
 
             return True

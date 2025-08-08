@@ -4,7 +4,10 @@
   "type": "node",
   "model": {
     "execution_model": {
-      "language": "python",
+      "language": {
+        "name": "python",
+        "executable_path": "."
+      },
       "input_schema": {
         "type": "object",
         "required": ["user"],

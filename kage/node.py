@@ -38,7 +38,13 @@ class KageNode:
                         "type": "object",
                         "required": ["language", "input_schema", "output_schema"],
                         "properties": {
-                            "language": "string",
+                            "language": {
+                                "type": "object",
+                                "properties": {
+                                    "name": "string",
+                                    "executable_path": "string"
+                                }
+                            },
                             "input_schema": "object",
                             "output_schema": "object",
                             "artifacts": {
@@ -269,8 +275,6 @@ if __name__ == "__main__":
     sys.exit(main())
 
 
-
-
 # Validation utility functions
 def validate_kage_project(project_dir: Path) -> Dict[str, Any]:
     """
@@ -304,5 +308,3 @@ def validate_kage_project(project_dir: Path) -> Dict[str, Any]:
         results["errors"].append(f"Unexpected error: {e}")
 
     return results
-
-
